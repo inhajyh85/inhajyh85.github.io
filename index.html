@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장요한 | 자기소개</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f2ee;
+      --surface: #ffffff;
+      --text: #1b1a17;
+      --muted: #6b675f;
+      --line: #e4e0d8;
+      --accent: #5b4bff;
+      --accent-2: #ff6b6b;
+      --accent-3: #12b886;
+      --shadow: 0 10px 30px rgba(30, 25, 10, 0.08);
+    }
+    /* 다크 모드 색상: 직접 고른 경우 */
+    :root[data-theme="dark"] {
+      --bg: #0f0e13;
+      --surface: #1a1920;
+      --text: #f1eff7;
+      --muted: #a19eab;
+      --line: #2c2a35;
+      --accent: #8b7dff;
+      --accent-2: #ff8787;
+      --accent-3: #38d9a9;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    /* 다크 모드 색상: 아직 고르지 않았고 컴퓨터가 다크 모드인 경우 */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f0e13;
+        --surface: #1a1920;
+        --text: #f1eff7;
+        --muted: #a19eab;
+        --line: #2c2a35;
+        --accent: #8b7dff;
+        --accent-2: #ff8787;
+        --accent-3: #38d9a9;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      transition: background-color 0.4s, color 0.4s;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ---------- 상단 내비게이션 ---------- */
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 1000px; margin: 0 auto;
+      padding: 16px 20px;
+      backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--bg) 75%, transparent);
+    }
+    .logo { font-weight: 900; font-size: 20px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    nav ul { display: flex; gap: 24px; list-style: none; font-size: 14px; color: var(--muted); }
+    nav ul a:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+
+    /* 라이트/다크 전환 버튼 */
+    .theme-toggle {
+      position: relative;
+      width: 64px; height: 32px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--surface);
+      cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8px; font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .theme-toggle:hover { border-color: var(--accent); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-toggle .knob {
+      position: absolute; top: 3px; left: 3px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);
+    }
+    :root[data-theme="dark"] .theme-toggle .knob { transform: translateX(32px); }
+
+    /* ---------- 히어로 ---------- */
+    .hero {
+      position: relative;
+      max-width: 1000px; margin: 0 auto;
+      padding: 80px 20px 100px;
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: center;
+    }
+    .blob {
+      position: absolute; z-index: -1; border-radius: 50%;
+      filter: blur(60px); opacity: 0.45;
+      animation: float 10s ease-in-out infinite;
+    }
+    .blob.b1 { width: 320px; height: 320px; background: var(--accent); top: 20px; right: 40px; }
+    .blob.b2 { width: 240px; height: 240px; background: var(--accent-2); bottom: 20px; right: 220px; animation-delay: -4s; }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-20px, 20px) scale(1.08); }
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--line);
+      font-size: 13px; color: var(--muted);
+    }
+    .badge .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent-3);
+      box-shadow: 0 0 0 0 var(--accent-3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-3) 60%, transparent); }
+      100% { box-shadow: 0 0 0 10px transparent; }
+    }
+    .hero h1 {
+      margin: 20px 0 16px;
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 900; line-height: 1.2; letter-spacing: -1.5px;
+    }
+    .gradient-text {
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p { color: var(--muted); font-size: 17px; max-width: 460px; }
+    .buttons { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent); }
+    .btn-ghost { border: 1px solid var(--line); background: var(--surface); }
+
+    .profile-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 28px; padding: 32px; box-shadow: var(--shadow);
+      text-align: center;
+      transform: rotate(2deg);
+      transition: transform 0.4s;
+    }
+    .profile-card:hover { transform: rotate(0deg) scale(1.02); }
+    .avatar {
+      width: 120px; height: 120px; margin: 0 auto 20px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 52px; font-weight: 900;
+    }
+    .profile-card h3 { font-size: 22px; }
+    .profile-card .role { color: var(--muted); font-size: 14px; }
+    .stats { display: flex; justify-content: space-around; margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--line); }
+    .stats strong { display: block; font-size: 22px; color: var(--accent); }
+    .stats span { font-size: 12px; color: var(--muted); }
+
+    /* ---------- 공통 섹션 ---------- */
+    section { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
+    .section-label {
+      font-size: 13px; font-weight: 700; letter-spacing: 2px;
+      color: var(--accent); text-transform: uppercase;
+    }
+    .section-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin: 4px 0 32px; }
+
+    .about-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 20px; padding: 28px;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow); border-color: var(--accent); }
+    .card .icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 16px;
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .card h4 { font-size: 18px; margin-bottom: 6px; }
+    .card p { color: var(--muted); font-size: 15px; }
+
+    /* 스킬 바 */
+    .skills { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; }
+    .skill-top { display: flex; justify-content: space-between; font-weight: 500; margin-bottom: 8px; }
+    .skill-top span:last-child { color: var(--muted); font-size: 14px; }
+    .bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+    .bar i {
+      display: block; height: 100%; border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1);
+    }
+    .visible .bar i { width: var(--w); }
+
+    /* 타임라인 */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px;
+      width: 2px; background: linear-gradient(var(--accent), var(--accent-2));
+    }
+    .tl-item { position: relative; margin-bottom: 32px; }
+    .tl-item::before {
+      content: ""; position: absolute; left: -32px; top: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--surface); border: 3px solid var(--accent);
+    }
+    .tl-date { font-size: 13px; color: var(--accent); font-weight: 700; }
+    .tl-item h4 { font-size: 18px; }
+    .tl-item p { color: var(--muted); font-size: 15px; }
+
+    /* 연락처 */
+    .contact {
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; border-radius: 32px; padding: 64px 24px;
+    }
+    .contact h2 { font-size: 34px; font-weight: 900; letter-spacing: -1px; }
+    .contact p { opacity: 0.9; margin: 8px 0 28px; }
+    .contact-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .contact-links a {
+      padding: 12px 22px; border-radius: 12px;
+      background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+      font-weight: 500; transition: background 0.2s;
+    }
+    .contact-links a:hover { background: rgba(255,255,255,0.3); }
+
+    footer { text-align: center; padding: 32px 20px 48px; color: var(--muted); font-size: 13px; }
+
+    /* 스크롤 등장 애니메이션 */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s, transform 0.8s; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ---------- 모바일 ---------- */
+    @media (max-width: 760px) {
+      nav ul { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 40px 16px 60px; text-align: center; }
+      .hero p { margin: 0 auto; }
+      .buttons { justify-content: center; }
+      .profile-card { transform: none; }
+      .about-grid, .skills { grid-template-columns: 1fr; }
+      section { padding: 48px 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .bar i { width: var(--w); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="#" class="logo">Gildong<span>.</span></a>
+    <div class="nav-right">
+      <ul>
+        <li><a href="#about">소개</a></li>
+        <li><a href="#skills">스킬</a></li>
+        <li><a href="#career">경력</a></li>
+        <li><a href="#contact">연락처</a></li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="다크 모드로 전환">
+        <span aria-hidden="true">☀️</span>
+        <span aria-hidden="true">🌙</span>
+        <span class="knob"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 히어로 -->
+  <header class="hero">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div>
+      <span class="badge"><span class="dot"></span>새로운 기회에 열려 있어요</span>
+      <h1>안녕하세요,<br>저는 <span class="gradient-text">장요한</span>입니다.</h1>
+      <p>사람을 생각하는 웹을 만드는 프론트엔드 개발자입니다. 작은 디테일이 큰 경험을 만든다고 믿어요.</p>
+      <div class="buttons">
+        <a href="#contact" class="btn btn-primary">연락하기 →</a>
+        <a href="#about" class="btn btn-ghost">더 알아보기</a>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="avatar">장</div>
+      <h3>장요한</h3>
+      <p class="role">Frontend Developer · Seoul</p>
+      <div class="stats">
+        <div><strong>15+</strong><span>년 경력</span></div>
+        <div><strong>5+</strong><span>프로젝트</span></div>
+        <div><strong>∞</strong><span>호기심</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 소개 -->
+  <section id="about" class="reveal">
+    <p class="section-label">About me</p>
+    <h2 class="section-title">이런 걸 좋아해요</h2>
+    <div class="about-grid">
+      <div class="card">
+        <div class="icon">💻</div>
+        <h4>개발</h4>
+        <p>깔끔하고 읽기 쉬운 코드로 빠르고 편리한 웹을 만듭니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎨</div>
+        <h4>디자인</h4>
+        <p>사용자가 자연스럽게 느끼는 인터페이스를 고민합니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📚</div>
+        <h4>배움</h4>
+        <p>새로운 기술을 배우고, 배운 것을 글로 나누는 걸 즐깁니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 스킬 -->
+  <section id="skills" class="reveal">
+    <p class="section-label">Skills</p>
+    <h2 class="section-title">다룰 수 있는 기술</h2>
+    <div class="skills">
+      <div>
+        <div class="skill-top"><span>HTML / CSS</span><span>90%</span></div>
+        <div class="bar"><i style="--w: 90%"></i></div>
+      </div>
+      <div>
+        <div class="skill-top"><span>JavaScript</span><span>80%</span></div>
+        <div class="bar"><i style="--w: 80%"></i></div>
+      </div>
+      <div>
+        <div class="skill-top"><span>React</span><span>70%</span></div>
+        <div class="bar"><i style="--w: 70%"></i></div>
+      </div>
+      <div>
+        <div class="skill-top"><span>UI 디자인 (Figma)</span><span>65%</span></div>
+        <div class="bar"><i style="--w: 65%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 경력 -->
+  <section id="career" class="reveal">
+    <p class="section-label">Career</p>
+    <h2 class="section-title">걸어온 길</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <p class="tl-date">2011 — 현재</p>
+        <h4>○○회사 프론트엔드 개발자</h4>
+        <p>서비스 웹사이트 리뉴얼 및 디자인 시스템 구축</p>
+      </div>
+      <div class="tl-item">
+        <p class="tl-date">2022 — 2024</p>
+        <h4>프리랜서 · 개인 프로젝트</h4>
+        <p>소규모 브랜드 웹사이트 10여 개 제작</p>
+      </div>
+      <div class="tl-item">
+        <p class="tl-date">2021</p>
+        <h4>○○대학교 컴퓨터공학과 졸업</h4>
+        <p>웹 개발 동아리 회장 활동</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 연락처 -->
+  <section id="contact" class="reveal">
+    <div class="contact">
+      <h2>함께 이야기해요 👋</h2>
+      <p>궁금한 점이나 제안이 있다면 언제든 연락 주세요.</p>
+      <div class="contact-links">
+        <a href="mailto:example@email.com">✉️ example@email.com</a>
+        <a href="https://github.com/" target="_blank">🐙 GitHub</a>
+        <a href="#" target="_blank">✍️ Blog</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 장요한 · Made with ♥</footer>
+
+  <script>
+    // 스크롤하면 섹션이 부드럽게 나타나는 효과
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    // 라이트/다크 모드 전환
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      toggle.setAttribute('aria-label', theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
+    }
+
+    // 처음 열 때: 저장된 선택 → 없으면 컴퓨터 설정을 따름
+    let saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (systemDark ? 'dark' : 'light'));
+
+    toggle.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    });
+  </script>
+</body>
+</html>
