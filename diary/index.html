@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>일기장</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f2ee;
+      --surface: #ffffff;
+      --surface-2: #f8f6f2;
+      --text: #1b1a17;
+      --muted: #6b675f;
+      --line: #e4e0d8;
+      --accent: #5b4bff;
+      --accent-2: #ff6b6b;
+      --danger: #e03131;
+      --warn-bg: #fff4e6;
+      --warn-text: #a14a00;
+      --shadow: 0 10px 30px rgba(30, 25, 10, 0.08);
+    }
+    /* 다크 모드 색상: 직접 고른 경우 */
+    :root[data-theme="dark"] {
+      --bg: #0f0e13;
+      --surface: #1a1920;
+      --surface-2: #22212a;
+      --text: #f1eff7;
+      --muted: #a19eab;
+      --line: #2c2a35;
+      --accent: #8b7dff;
+      --accent-2: #ff8787;
+      --danger: #ff6b6b;
+      --warn-bg: #3a2a14;
+      --warn-text: #ffc078;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    /* 다크 모드 색상: 아직 고르지 않았고 컴퓨터가 다크 모드인 경우 */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f0e13;
+        --surface: #1a1920;
+        --surface-2: #22212a;
+        --text: #f1eff7;
+        --muted: #a19eab;
+        --line: #2c2a35;
+        --accent: #8b7dff;
+        --accent-2: #ff8787;
+        --danger: #ff6b6b;
+        --warn-bg: #3a2a14;
+        --warn-text: #ffc078;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px 40px; }
+
+    /* ---------- 상단 ---------- */
+    header {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 20px 0;
+    }
+    .logo { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; margin-right: auto; display: flex; align-items: center; gap: 12px; }
+    .logo a { color: inherit; text-decoration: none; }
+    .search {
+      width: 220px; padding: 8px 14px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--surface);
+    }
+    .search:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--surface); font-weight: 500; white-space: nowrap;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.danger { color: var(--danger); }
+    .btn.danger:hover { border-color: var(--danger); }
+    .btn.small { padding: 4px 12px; font-size: 13px; }
+
+    .theme-toggle {
+      position: relative; width: 64px; height: 32px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--surface);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8px; font-size: 14px; flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--accent); }
+    .theme-toggle .knob {
+      position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);
+    }
+    :root[data-theme="dark"] .theme-toggle .knob { transform: translateX(32px); }
+
+    .banner {
+      display: none; margin-bottom: 16px; padding: 10px 16px; border-radius: 12px;
+      background: var(--warn-bg); color: var(--warn-text); font-size: 14px;
+    }
+    .banner.show { display: block; }
+
+    /* ---------- 본문 레이아웃 ---------- */
+    main { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 20px; box-shadow: var(--shadow); padding: 20px;
+    }
+
+    /* ---------- 달력 ---------- */
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-head h2 { font-size: 18px; font-weight: 700; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line);
+      background: var(--surface); font-size: 14px;
+    }
+    .icon-btn:hover { border-color: var(--accent); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .dow { text-align: center; font-size: 12px; color: var(--muted); padding: 4px 0; }
+    .dow.sun, .day.sun .num { color: var(--accent-2); }
+    .dow.sat, .day.sat .num { color: var(--accent); }
+    .day {
+      position: relative; aspect-ratio: 1; border-radius: 10px; border: 1px solid transparent;
+      background: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0; padding: 2px; line-height: 1.1;
+    }
+    .day:hover { background: var(--surface-2); }
+    .day .num { font-size: 13px; }
+    .day .mood { font-size: 18px; height: 20px; }
+    .day.empty { visibility: hidden; }
+    .day.today { border-color: var(--line); font-weight: 700; }
+    .day.selected { background: var(--accent); border-color: var(--accent); }
+    .day.selected .num { color: #fff; }
+    .day .count {
+      position: absolute; top: -5px; right: -5px; z-index: 1; font-size: 10px; font-weight: 700; line-height: 1.5;
+      background: var(--accent-2); color: #fff; border-radius: 999px; padding: 0 4px;
+    }
+    .cal-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 8px; }
+    .stats { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14px; }
+    .stats h3 { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+    .stats-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 999px; background: var(--surface-2); font-size: 13px;
+    }
+    .chip b { font-weight: 700; }
+    .backup { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .backup h3 { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+    .backup-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* 불러오기 대화상자 */
+    dialog.modal {
+      margin: auto; border: 1px solid var(--line); border-radius: 20px; padding: 24px;
+      width: calc(100% - 32px); max-width: 420px;
+      background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+    }
+    dialog.modal::backdrop { background: rgba(0, 0, 0, 0.45); }
+    dialog.modal h2 { font-size: 18px; margin-bottom: 8px; }
+    dialog.modal p { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+    dialog.modal .warn { color: var(--danger); }
+    dialog.modal .actions { margin-top: 18px; }
+
+    /* ---------- 오른쪽 패널 ---------- */
+    .panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .panel-head h2 { font-size: 18px; font-weight: 700; margin-right: auto; }
+    .panel-head .sub { color: var(--muted); font-size: 14px; font-weight: 400; }
+
+    .list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .item {
+      width: 100%; text-align: left; display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+      border-left: 5px solid var(--mood-color, var(--line));
+      transition: transform 0.15s, border-color 0.2s;
+    }
+    .item:hover { transform: translateY(-1px); border-color: var(--accent); border-left-color: var(--mood-color); }
+    .item .emo { font-size: 28px; line-height: 1; }
+    .item .body { flex: 1; min-width: 0; }
+    .item .top { display: flex; gap: 8px; align-items: baseline; }
+    .item .title { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item .meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .item .preview {
+      font-size: 14px; color: var(--muted); margin-top: 2px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .empty-msg { text-align: center; color: var(--muted); padding: 40px 0; }
+    .empty-msg .big { font-size: 40px; display: block; margin-bottom: 8px; }
+    mark { background: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; border-radius: 3px; }
+
+    /* 상세 */
+    .detail-mood {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px;
+      background: color-mix(in srgb, var(--mood-color) 18%, transparent); font-weight: 500; margin-bottom: 10px;
+    }
+    .detail-title { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; word-break: break-word; }
+    .detail-meta { color: var(--muted); font-size: 13px; margin: 4px 0 16px; }
+    .detail-content { white-space: pre-wrap; word-break: break-word; font-size: 16px; line-height: 1.8; min-height: 80px; }
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; }
+
+    /* 작성 폼 */
+    .field { margin-bottom: 16px; }
+    .field > label, .field > .label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .input, .textarea {
+      width: 100%; padding: 10px 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--surface-2);
+    }
+    .input:focus, .textarea:focus { outline: none; border-color: var(--accent); }
+    .textarea { min-height: 240px; resize: vertical; line-height: 1.7; }
+    input[type="date"].input { width: auto; color-scheme: light dark; }
+    .moods { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .mood-opt {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 2px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface);
+      font-size: 12px; transition: transform 0.15s, border-color 0.2s;
+    }
+    .mood-opt .e { font-size: 26px; line-height: 1.1; }
+    .mood-opt:hover { transform: translateY(-2px); }
+    .mood-opt[aria-checked="true"] {
+      border-color: var(--mood-color);
+      background: color-mix(in srgb, var(--mood-color) 15%, var(--surface));
+      font-weight: 700;
+    }
+    .error { color: var(--danger); font-size: 14px; min-height: 20px; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 32px; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+      background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 999px;
+      font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- 모바일 ---------- */
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; }
+      header { gap: 8px; }
+      .logo { width: 100%; margin-right: 0; display: flex; justify-content: space-between; align-items: center; }
+      .search { flex: 1; width: auto; min-width: 0; }
+      .moods { grid-template-columns: repeat(3, 1fr); }
+      .card { padding: 16px; border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <a href="./">📔 일기장</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="다크 모드로 전환">
+          <span class="knob"></span><span>☀️</span><span>🌙</span>
+        </button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="🔍 제목·내용 검색" aria-label="일기 검색">
+      <button class="btn primary" id="newBtn" type="button">✏️ 새 일기</button>
+    </header>
+
+    <div class="banner" id="banner"></div>
+
+    <main>
+      <!-- 달력 -->
+      <section class="card" aria-label="달력">
+        <div class="cal-head">
+          <button class="icon-btn" id="prevMonth" type="button" aria-label="이전 달">◀</button>
+          <h2 id="monthLabel"></h2>
+          <button class="icon-btn" id="nextMonth" type="button" aria-label="다음 달">▶</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-foot">
+          <button class="btn small" id="todayBtn" type="button">오늘</button>
+          <button class="btn small" id="monthAllBtn" type="button">이번 달 전체 보기</button>
+        </div>
+        <div class="stats">
+          <h3 id="statsLabel">이번 달 감정</h3>
+          <div class="stats-row" id="stats"></div>
+        </div>
+        <div class="backup">
+          <h3>백업</h3>
+          <div class="backup-row">
+            <button class="btn small" id="exportBtn" type="button">💾 내보내기</button>
+            <button class="btn small" id="importBtn" type="button">📂 불러오기</button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+          </div>
+        </div>
+      </section>
+
+      <!-- 목록 / 상세 / 작성 -->
+      <section class="card" id="panel" aria-live="polite"></section>
+    </main>
+
+    <footer>일기는 이 브라우저(localStorage)에만 저장됩니다 · 다른 기기와 공유되지 않아요</footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <dialog class="modal" id="importDialog" aria-labelledby="importTitle">
+    <form method="dialog">
+      <h2 id="importTitle">📂 일기 불러오기</h2>
+      <p id="importInfo"></p>
+      <p>· <b>합치기</b>: 지금 일기는 그대로 두고 파일의 일기를 더해요. 같은 일기는 더 최근에 고친 쪽을 남겨요.</p>
+      <p class="warn">· <b>모두 바꾸기</b>: 지금 일기를 모두 지우고 파일 내용으로 바꿔요. 되돌릴 수 없어요.</p>
+      <div class="actions">
+        <button class="btn" value="cancel">취소</button>
+        <button class="btn danger" value="replace">모두 바꾸기</button>
+        <button class="btn primary" value="merge" autofocus>합치기</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+// ===================== 설정 =====================
+const KEY = 'diary.entries';
+const MOODS = {
+  happy: { emoji: '😄', label: '행복', color: '#f59e0b' },
+  good:  { emoji: '🙂', label: '좋음', color: '#22c55e' },
+  soso:  { emoji: '😐', label: '보통', color: '#94a3b8' },
+  sad:   { emoji: '😢', label: '슬픔', color: '#3b82f6' },
+  angry: { emoji: '😠', label: '화남', color: '#ef4444' },
+  tired: { emoji: '😴', label: '피곤', color: '#8b5cf6' },
+};
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+
+// ===================== 저장소 =====================
+let storageOK = true;
+try {
+  const t = '__diary_test__';
+  localStorage.setItem(t, t);
+  localStorage.removeItem(t);
+} catch (e) { storageOK = false; }
+
+function loadEntries() {
+  if (!storageOK) return [];
+  try {
+    const data = JSON.parse(localStorage.getItem(KEY));
+    return Array.isArray(data) ? data.filter((e) => e && e.id && e.date) : [];
+  } catch (e) { return []; }
+}
+function saveEntries() {
+  if (!storageOK) return true; // 메모리에만 보관 (배너로 안내 중)
+  try {
+    localStorage.setItem(KEY, JSON.stringify(entries));
+    return true;
+  } catch (e) {
+    showBanner('⚠️ 저장 공간이 부족해서 저장하지 못했어요. 오래된 일기를 정리해 주세요.');
+    return false;
+  }
+}
+
+let entries = loadEntries();
+
+// ===================== 유틸 =====================
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const newId = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+function parseYmd(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function dateLabel(s) {
+  const d = parseYmd(s);
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+}
+function timeLabel(ts) { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function fullTimeLabel(ts) { const d = new Date(ts); return `${ymd(d)} ${timeLabel(ts)}`; }
+function moodOf(e) { return MOODS[e.mood] || MOODS.soso; }
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') node.className = v;
+    else if (k === 'text') node.textContent = v;
+    else if (k === 'style') node.style.cssText = v;
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of children.flat()) if (c != null) node.append(c);
+  return node;
+}
+
+// 검색어를 <mark>로 강조 (textContent 기반이라 안전)
+function highlight(text, q) {
+  const frag = document.createDocumentFragment();
+  if (!q) { frag.append(text); return frag; }
+  const lower = text.toLowerCase(), ql = q.toLowerCase();
+  let i = 0, j;
+  while ((j = lower.indexOf(ql, i)) !== -1) {
+    frag.append(text.slice(i, j), el('mark', { text: text.slice(j, j + q.length) }));
+    i = j + q.length;
+  }
+  frag.append(text.slice(i));
+  return frag;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+function showBanner(msg) {
+  const b = document.getElementById('banner');
+  b.textContent = msg;
+  b.classList.add('show');
+}
+
+// ===================== 상태 =====================
+const today = new Date();
+const state = {
+  year: today.getFullYear(),
+  month: today.getMonth(),      // 0~11
+  selected: ymd(today),         // 'YYYY-MM-DD' 또는 null(월 전체)
+  query: '',
+  view: 'list',                 // 'list' | 'detail' | 'form'
+  currentId: null,              // 상세 보기 중인 일기
+  editingId: null,              // 수정 중인 일기 (null이면 새 일기)
+};
+
+// 날짜별 일기 (작성 시각 오름차순)
+function entriesOn(date) {
+  return entries.filter((e) => e.date === date).sort((a, b) => a.createdAt - b.createdAt);
+}
+function monthPrefix() { return `${state.year}-${pad(state.month + 1)}`; }
+
+// ===================== 달력 =====================
+function renderCalendar() {
+  document.getElementById('monthLabel').textContent = `${state.year}년 ${state.month + 1}월`;
+  const grid = document.getElementById('calGrid');
+  grid.replaceChildren();
+  DOW.forEach((d, i) => grid.append(el('div', { class: 'dow' + (i === 0 ? ' sun' : i === 6 ? ' sat' : ''), text: d })));
+
+  const first = new Date(state.year, state.month, 1);
+  const days = new Date(state.year, state.month + 1, 0).getDate();
+  for (let i = 0; i < first.getDay(); i++) grid.append(el('div', { class: 'day empty' }));
+
+  const todayStr = ymd(new Date());
+  for (let d = 1; d <= days; d++) {
+    const date = `${monthPrefix()}-${pad(d)}`;
+    const list = entriesOn(date);
+    const latest = list[list.length - 1];
+    const dow = (first.getDay() + d - 1) % 7;
+    const cls = ['day'];
+    if (dow === 0) cls.push('sun');
+    if (dow === 6) cls.push('sat');
+    if (date === todayStr) cls.push('today');
+    if (date === state.selected) cls.push('selected');
+    const label = `${state.month + 1}월 ${d}일` + (list.length ? `, 일기 ${list.length}개` : '');
+    grid.append(el('button', {
+      class: cls.join(' '), type: 'button', 'aria-label': label,
+      'aria-pressed': date === state.selected ? 'true' : 'false',
+      onclick: () => selectDate(date === state.selected ? null : date),
+    },
+      el('span', { class: 'num', text: d }),
+      el('span', { class: 'mood', text: latest ? moodOf(latest).emoji : '' }),
+      list.length > 1 ? el('span', { class: 'count', text: '+' + (list.length - 1) }) : null,
+    ));
+  }
+}
+
+function renderStats() {
+  document.getElementById('statsLabel').textContent = `${state.month + 1}월의 감정`;
+  const box = document.getElementById('stats');
+  box.replaceChildren();
+  const inMonth = entries.filter((e) => e.date.startsWith(monthPrefix()));
+  if (!inMonth.length) { box.append(el('span', { class: 'hint', text: '아직 기록이 없어요' })); return; }
+  const counts = {};
+  inMonth.forEach((e) => { counts[e.mood] = (counts[e.mood] || 0) + 1; });
+  Object.keys(MOODS).filter((k) => counts[k]).sort((a, b) => counts[b] - counts[a]).forEach((k) => {
+    box.append(el('span', { class: 'chip', title: MOODS[k].label }, MOODS[k].emoji, ' ', MOODS[k].label, ' ', el('b', { text: counts[k] })));
+  });
+}
+
+// ===================== 패널: 목록 =====================
+function renderList() {
+  const panel = document.getElementById('panel');
+  const q = state.query.trim();
+  let title, sub, list;
+
+  if (q) {
+    const ql = q.toLowerCase();
+    list = entries.filter((e) => (e.title + '\n' + e.content).toLowerCase().includes(ql));
+    title = `"${q}" 검색 결과`;
+    sub = `${list.length}개 · 전체 기간`;
+  } else if (state.selected) {
+    list = entriesOn(state.selected).reverse();
+    title = dateLabel(state.selected);
+    sub = `${list.length}개`;
+  } else {
+    list = entries.filter((e) => e.date.startsWith(monthPrefix()));
+    title = `${state.year}년 ${state.month + 1}월 전체`;
+    sub = `${list.length}개`;
+  }
+  if (q || !state.selected) list.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+
+  const head = el('div', { class: 'panel-head' },
+    el('h2', {}, title, ' ', el('span', { class: 'sub', text: '· ' + sub })),
+    q ? el('button', { class: 'btn small', type: 'button', onclick: clearSearch, text: '검색 지우기' }) : null,
+  );
+
+  let body;
+  if (!list.length) {
+    body = el('div', { class: 'empty-msg' },
+      el('span', { class: 'big', text: q ? '🔎' : '📝' }),
+      q ? '일치하는 일기가 없어요.' : '아직 쓴 일기가 없어요.',
+      q ? null : el('div', { style: 'margin-top:12px' },
+        el('button', { class: 'btn primary', type: 'button', onclick: () => openForm(null), text: '✏️ 이 날 일기 쓰기' })),
+    );
+  } else {
+    body = el('ul', { class: 'list' }, list.map((e) => {
+      const m = moodOf(e);
+      const showDate = q || !state.selected;
+      return el('li', {}, el('button', {
+        class: 'item', type: 'button', style: `--mood-color:${m.color}`,
+        onclick: () => openDetail(e.id),
+      },
+        el('span', { class: 'emo', title: m.label, text: m.emoji }),
+        el('span', { class: 'body' },
+          el('span', { class: 'top' },
+            el('span', { class: 'title' }, highlight(e.title || '(제목 없음)', q)),
+            el('span', { class: 'meta', text: showDate ? `${e.date.slice(5).replace('-', '/')} ${timeLabel(e.createdAt)}` : timeLabel(e.createdAt) }),
+          ),
+          e.content ? el('span', { class: 'preview' }, highlight(e.content, q)) : null,
+        ),
+      ));
+    }));
+  }
+  panel.replaceChildren(head, body);
+}
+
+// ===================== 패널: 상세 =====================
+function renderDetail() {
+  const e = entries.find((x) => x.id === state.currentId);
+  if (!e) { state.view = 'list'; return renderList(); }
+  const m = moodOf(e);
+  const panel = document.getElementById('panel');
+  const edited = e.updatedAt - e.createdAt > 1000;
+  panel.replaceChildren(
+    el('div', { class: 'panel-head' },
+      el('button', { class: 'btn small', type: 'button', onclick: backToList, text: '← 목록' }),
+    ),
+    el('article', { style: `--mood-color:${m.color}` },
+      el('span', { class: 'detail-mood' }, m.emoji, ' ', m.label),
+      el('h2', { class: 'detail-title', text: e.title || '(제목 없음)' }),
+      el('p', { class: 'detail-meta', text: dateLabel(e.date) + ' · 작성 ' + fullTimeLabel(e.createdAt) + (edited ? ' · 수정 ' + fullTimeLabel(e.updatedAt) : '') }),
+      el('div', { class: 'detail-content', text: e.content }),
+    ),
+    el('div', { class: 'actions' },
+      el('button', { class: 'btn danger', type: 'button', onclick: () => removeEntry(e.id), text: '🗑️ 삭제' }),
+      el('button', { class: 'btn primary', type: 'button', onclick: () => openForm(e.id), text: '✏️ 수정' }),
+    ),
+  );
+}
+
+// ===================== 패널: 작성/수정 폼 =====================
+let formSnapshot = '';
+function renderForm() {
+  const editing = state.editingId ? entries.find((x) => x.id === state.editingId) : null;
+  const panel = document.getElementById('panel');
+  let mood = editing ? editing.mood : null;
+
+  const dateInput = el('input', { class: 'input', type: 'date', id: 'fDate', required: true,
+    value: editing ? editing.date : (state.selected || ymd(new Date())) });
+  const titleInput = el('input', { class: 'input', type: 'text', id: 'fTitle', maxlength: '100',
+    placeholder: '오늘을 한 줄로 표현하면?', value: editing ? editing.title : '' });
+  const contentInput = el('textarea', { class: 'textarea', id: 'fContent', placeholder: '오늘 있었던 일, 느낀 점을 자유롭게 적어보세요.' });
+  contentInput.value = editing ? editing.content : '';
+  const errorBox = el('p', { class: 'error', role: 'alert' });
+
+  const moodBtns = Object.entries(MOODS).map(([key, m]) => el('button', {
+    class: 'mood-opt', type: 'button', role: 'radio', style: `--mood-color:${m.color}`,
+    'aria-checked': key === mood ? 'true' : 'false', 'data-mood': key,
+    onclick: () => {
+      mood = key;
+      moodBtns.forEach((b) => b.setAttribute('aria-checked', b.dataset.mood === key ? 'true' : 'false'));
+      errorBox.textContent = '';
+    },
+  }, el('span', { class: 'e', text: m.emoji }), m.label));
+
+  const snapshot = () => [dateInput.value, mood, titleInput.value, contentInput.value].join('\u0000');
+
+  function submit(ev) {
+    ev.preventDefault();
+    const title = titleInput.value.trim();
+    const content = contentInput.value.replace(/\s+$/, '');
+    if (!dateInput.value) { errorBox.textContent = '날짜를 골라 주세요.'; return dateInput.focus(); }
+    if (!mood) { errorBox.textContent = '오늘의 감정을 골라 주세요.'; return moodBtns[0].focus(); }
+    if (!title && !content.trim()) { errorBox.textContent = '제목이나 내용을 적어 주세요.'; return titleInput.focus(); }
+    const id = upsertEntry({ id: state.editingId, date: dateInput.value, mood, title, content });
+    if (!id) return;
+    toast(state.editingId ? '수정했어요 ✨' : '저장했어요 📔');
+    const d = parseYmd(dateInput.value);
+    state.year = d.getFullYear(); state.month = d.getMonth(); state.selected = dateInput.value;
+    state.editingId = null; state.currentId = id; state.view = 'detail';
+    renderAll();
+  }
+
+  function cancel() {
+    if (snapshot() !== formSnapshot && !confirm('작성 중인 내용이 사라져요. 취소할까요?')) return;
+    const backId = state.editingId;
+    state.editingId = null;
+    if (backId) { state.currentId = backId; state.view = 'detail'; } else state.view = 'list';
+    renderPanel();
+  }
+
+  const form = el('form', {
+    onsubmit: submit, novalidate: true,
+    onkeydown: (ev) => {
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) submit(ev);
+      if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+    },
+  },
+    el('div', { class: 'field' }, el('label', { for: 'fDate', text: '날짜' }), dateInput),
+    el('div', { class: 'field' },
+      el('span', { class: 'label', id: 'moodLabel', text: '오늘의 감정' }),
+      el('div', { class: 'moods', role: 'radiogroup', 'aria-labelledby': 'moodLabel' }, moodBtns)),
+    el('div', { class: 'field' }, el('label', { for: 'fTitle', text: '제목' }), titleInput),
+    el('div', { class: 'field' }, el('label', { for: 'fContent', text: '내용' }), contentInput),
+    errorBox,
+    el('div', { class: 'actions' },
+      el('span', { class: 'hint', style: 'margin-right:auto;align-self:center', text: 'Ctrl+Enter 저장 · Esc 취소' }),
+      el('button', { class: 'btn', type: 'button', onclick: cancel, text: '취소' }),
+      el('button', { class: 'btn primary', type: 'submit', text: editing ? '수정 완료' : '저장' }),
+    ),
+  );
+
+  panel.replaceChildren(
+    el('div', { class: 'panel-head' }, el('h2', { text: editing ? '✏️ 일기 수정' : '✏️ 새 일기' })),
+    form,
+  );
+  formSnapshot = snapshot();
+  (editing ? contentInput : titleInput).focus({ preventScroll: true });
+}
+
+// ===================== 동작 =====================
+function upsertEntry(data) {
+  const now = Date.now();
+  const backup = entries.slice();
+  let id = data.id;
+  const i = id ? entries.findIndex((e) => e.id === id) : -1;
+  if (i >= 0) entries[i] = { ...entries[i], ...data, updatedAt: now };
+  else { id = newId(); entries.push({ ...data, id, createdAt: now, updatedAt: now }); }
+  if (!saveEntries()) { entries = backup; return null; }
+  return id;
+}
+
+function removeEntry(id) {
+  const e = entries.find((x) => x.id === id);
+  if (!e || !confirm(`"${e.title || '(제목 없음)'}" 일기를 삭제할까요?\n삭제하면 되돌릴 수 없어요.`)) return;
+  const backup = entries.slice();
+  entries = entries.filter((x) => x.id !== id);
+  if (!saveEntries()) { entries = backup; return; }
+  toast('삭제했어요');
+  state.view = 'list'; state.currentId = null;
+  renderAll();
+}
+
+// ===================== 내보내기 / 불러오기 =====================
+function exportEntries() {
+  if (!entries.length) { toast('내보낼 일기가 없어요'); return; }
+  const data = {
+    app: 'diary', version: 1, exportedAt: new Date().toISOString(),
+    count: entries.length,
+    entries: entries.slice().sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = el('a', { href: url, download: `diary-backup-${ymd(new Date())}.json` });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`일기 ${entries.length}개를 내보냈어요 💾`);
+}
+
+// 파일에서 읽은 항목을 검증·정리. 쓸 수 없는 항목은 null
+function normalizeEntry(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const date = typeof raw.date === 'string' ? raw.date.trim() : '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || ymd(parseYmd(date)) !== date) return null;
+  const title = raw.title == null ? '' : String(raw.title).slice(0, 100);
+  const content = raw.content == null ? '' : String(raw.content);
+  if (!title.trim() && !content.trim()) return null;
+  const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
+  const createdAt = num(raw.createdAt) ?? parseYmd(date).getTime();
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : newId(),
+    date,
+    mood: MOODS[raw.mood] ? raw.mood : 'soso',
+    title, content,
+    createdAt,
+    updatedAt: num(raw.updatedAt) ?? createdAt,
+  };
+}
+
+function askImportMode(fileCount) {
+  const dlg = document.getElementById('importDialog');
+  document.getElementById('importInfo').textContent =
+    `파일에 일기 ${fileCount}개가 있어요. 지금 이 브라우저에는 ${entries.length}개가 있어요.`;
+  return new Promise((resolve) => {
+    dlg.returnValue = 'cancel';
+    dlg.addEventListener('close', () => resolve(dlg.returnValue || 'cancel'), { once: true });
+    dlg.showModal();
+  });
+}
+
+async function importFile(file) {
+  if (file.size > 5 * 1024 * 1024) { alert('파일이 너무 커요 (5MB 이하만 불러올 수 있어요).'); return; }
+  let parsed;
+  try { parsed = JSON.parse(await file.text()); }
+  catch (e) { alert('JSON 파일을 읽지 못했어요. 일기장에서 내보낸 파일인지 확인해 주세요.'); return; }
+
+  const list = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.entries) ? parsed.entries : null);
+  if (!list) { alert('일기장 백업 파일 형식이 아니에요.'); return; }
+  // 같은 파일 안에서 id가 겹치면 뒤의 것을 새 id로
+  const seen = new Set();
+  const incoming = list.map(normalizeEntry).filter(Boolean).map((e) => {
+    if (seen.has(e.id)) e = { ...e, id: newId() };
+    seen.add(e.id);
+    return e;
+  });
+  const skipped = list.length - incoming.length;
+  if (!incoming.length) { alert('불러올 수 있는 일기가 없어요.'); return; }
+
+  const mode = entries.length ? await askImportMode(incoming.length) : 'replace';
+  if (mode !== 'merge' && mode !== 'replace') return;
+
+  const backup = entries.slice();
+  let msg;
+  if (mode === 'replace') {
+    entries = incoming;
+    msg = `일기 ${incoming.length}개를 불러왔어요`;
+  } else {
+    const byId = new Map(entries.map((e) => [e.id, e]));
+    let added = 0, updated = 0, same = 0;
+    for (const e of incoming) {
+      const cur = byId.get(e.id);
+      if (!cur) { byId.set(e.id, e); added++; }
+      else if (e.updatedAt > cur.updatedAt) { byId.set(e.id, e); updated++; }
+      else same++;
+    }
+    entries = [...byId.values()];
+    msg = `추가 ${added}개 · 갱신 ${updated}개 · 그대로 ${same}개`;
+  }
+  if (!saveEntries()) { entries = backup; return; }
+  if (skipped) msg += ` (형식이 맞지 않는 ${skipped}개는 건너뜀)`;
+  toast(msg + ' 📂');
+  state.view = 'list'; state.currentId = null;
+  renderAll();
+}
+
+// 작성 중이면 화면을 떠나기 전에 확인
+function leaveFormOK() {
+  if (state.view !== 'form') return true;
+  const f = document.querySelector('#panel form');
+  if (!f) return true;
+  const changed = [f.fDate.value, f.querySelector('[aria-checked="true"]')?.dataset.mood ?? null, f.fTitle.value, f.fContent.value].join('\u0000') !== formSnapshot;
+  if (changed && !confirm('작성 중인 내용이 사라져요. 계속할까요?')) return false;
+  state.editingId = null;
+  state.view = 'list';
+  return true;
+}
+
+function selectDate(date) {
+  if (!leaveFormOK()) return;
+  state.selected = date;
+  state.query = ''; document.getElementById('search').value = '';
+  state.view = 'list';
+  renderAll();
+}
+// 패널 윗부분이 화면 밖이면(모바일에서 달력 아래에 있을 때) 패널로 스크롤
+function scrollToPanel() {
+  const top = document.getElementById('panel').getBoundingClientRect().top;
+  if (top < 0 || top > window.innerHeight * 0.6) window.scrollTo({ top: window.scrollY + top - 16, behavior: 'smooth' });
+}
+function openDetail(id) { state.currentId = id; state.view = 'detail'; renderPanel(); scrollToPanel(); }
+function openForm(id) { if (!leaveFormOK()) return; state.editingId = id; state.view = 'form'; renderPanel(); scrollToPanel(); }
+function backToList() { state.view = 'list'; renderPanel(); }
+function clearSearch() { state.query = ''; document.getElementById('search').value = ''; renderPanel(); }
+function moveMonth(diff) {
+  if (!leaveFormOK()) return;
+  const d = new Date(state.year, state.month + diff, 1);
+  state.year = d.getFullYear(); state.month = d.getMonth();
+  state.selected = null; state.view = 'list';
+  renderAll();
+}
+
+function renderPanel() {
+  if (state.view === 'form') renderForm();
+  else if (state.view === 'detail') renderDetail();
+  else renderList();
+}
+function renderAll() { renderCalendar(); renderStats(); renderPanel(); }
+
+// ===================== 이벤트 =====================
+document.getElementById('prevMonth').addEventListener('click', () => moveMonth(-1));
+document.getElementById('nextMonth').addEventListener('click', () => moveMonth(1));
+document.getElementById('todayBtn').addEventListener('click', () => {
+  if (!leaveFormOK()) return;
+  const t = new Date();
+  state.year = t.getFullYear(); state.month = t.getMonth();
+  selectDate(ymd(t));
+});
+document.getElementById('monthAllBtn').addEventListener('click', () => selectDate(null));
+document.getElementById('newBtn').addEventListener('click', () => openForm(null));
+document.getElementById('exportBtn').addEventListener('click', exportEntries);
+document.getElementById('importBtn').addEventListener('click', () => {
+  if (!leaveFormOK()) return;
+  renderPanel();
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  ev.target.value = ''; // 같은 파일을 다시 골라도 change가 일어나게
+  if (file) await importFile(file);
+});
+document.getElementById('search').addEventListener('input', (ev) => {
+  if (state.view === 'form') { if (!leaveFormOK()) { ev.target.value = state.query; return; } }
+  state.query = ev.target.value;
+  state.view = 'list';
+  renderPanel();
+});
+window.addEventListener('beforeunload', (ev) => {
+  if (state.view !== 'form') return;
+  const f = document.querySelector('#panel form');
+  if (f && (f.fTitle.value.trim() || f.fContent.value.trim())) { ev.preventDefault(); ev.returnValue = ''; }
+});
+// 다른 탭에서 일기가 바뀌면 반영
+window.addEventListener('storage', (ev) => {
+  if (ev.key !== KEY) return;
+  entries = loadEntries();
+  renderCalendar(); renderStats();
+  if (state.view !== 'form') renderPanel();
+});
+
+// 라이트/다크 모드 (루트 페이지와 같은 'theme' 키 공유)
+const root = document.documentElement;
+const toggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  root.setAttribute('data-theme', theme);
+  toggle.setAttribute('aria-label', theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
+}
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
+applyTheme(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+toggle.addEventListener('click', () => {
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('theme', next); } catch (e) {}
+});
+
+// ===================== 시작 =====================
+if (!storageOK) showBanner('⚠️ 이 브라우저에서는 저장소를 쓸 수 없어요(사생활 보호 모드 등). 새로고침하면 일기가 사라집니다.');
+renderAll();
+</script>
+</body>
+</html>
